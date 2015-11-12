@@ -13,13 +13,15 @@ faces_data_file = open('faces-data.txt', 'r')
 for line in faces_data_file:
 	tokens = line.rstrip('\n').split()
 	key = tokens[0]
+	print key
 	faces[key] = {}
 	faces[key]['url'] = tokens[1]
 	faces[key]['rating'] = tokens[2]
 	faces[key]['face_id'] = tokens[3]
-	print str(api.detection.landmark(face_id = faces[key]['face_id']))
-	break
+	faces[key]['features'] = api.detection.landmark(face_id = faces[key]['face_id'])
 faces_data_file.close()
+
+print faces
 
 
 
