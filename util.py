@@ -10,24 +10,16 @@ import sys
 from collections import Counter
 
 
-def evaluatePredictor(examples, predictor):
-    '''
-    predictor: a function that takes an x and returns a predicted y.
-    Given a list of examples (x, y), makes predictions based on |predict| and returns the fraction
-    of misclassiied examples.
-    '''
-    error = 0
-    for x, y in examples:
-        if predictor(x) != y:
-            error += 1
-    return 1.0 * error / len(examples)
+def evaluate_predictor(data, feature_extractor, weights):
+    correct = 0
+    for person_id, attrs in data.items():
+        feature_vector = feature_extractor(attrs['attributes'])
+        rating = float(attrs['rating'])
+        prediction = dot_product(weights, feature_vector)
+        if abs(rating - prediction) <= 0.5: correct += 1
+    return correct
 
 def dot_product(d1, d2):
-    """
-    @param dict d1: a feature vector represented by a mapping from a feature (string) to a weight (float).
-    @param dict d2: same as d1
-    @return float: the dot product between d1 and d2
-    """
     if len(d1) < len(d2):
         return dot_product(d2, d1)
     else:
@@ -35,12 +27,6 @@ def dot_product(d1, d2):
 
 
 def increment(d1, scale, d2):
-    """
-    Implements d1 += scale * d2 for sparse vectors.
-    @param dict d1: the feature vector which is mutated.
-    @param float scale
-    @param dict d2: a feature vector.
-    """
     for f, v in d2.items():
         d1[f] = d1.get(f, 0) + v * scale
 
@@ -65,3 +51,5 @@ def read_file(file_name):
     data_file.close()
 
     return data
+
+    

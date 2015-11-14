@@ -19,7 +19,7 @@ def retrieve_data(file_name):
 	input_file = open(file_name, 'r')
 	for line in input_file:
 		# temporary: face++ crashes frequently
-		if index > 50: break
+		# if index > 50: break
 
 		print 'Working on face ' + str(index) + ': ',
 
@@ -46,3 +46,5 @@ def main(argv):
 
 if __name__ == '__main__':
 	main(sys.argv[1:])
+
+	

@@ -135,41 +135,32 @@ def learn_predictor(train, dev, feature_extractor):
     dev_data = read_file(dev)
 
     weights = collections.defaultdict(lambda: 0)  # feature => weight
-    num_iters = 20
+    num_iters = 500
 
     for t in range(num_iters):
-        eta = 1 / math.sqrt(t + 1)   
+        eta = .000001  
 
         for person_id, attrs in train_data.items():
             feature_vector = extract_features(attrs['attributes'])
             rating = float(attrs['rating'])
             margin = dot_product(weights, feature_vector) - rating
-            # print dot_product(weights, feature_vector)
-            # print weights
-            # print 'hi'
-            # increment(weights, -eta * 2 * margin, feature_vector)
-            print weights
-            print feature_vector
-
             increment(weights, -eta * 2 * margin, feature_vector)
-            # print margin
-            # print weights
-            break
 
-        # trainError = evaluatePredictor(train, lambda (x) : (1 if dot_product(extract_features(x), weights) >= 0 else -1))
-        # devError = evaluatePredictor(dev, lambda (x) : (1 if dot_product(extract_features(x), weights) >= 0 else -1))
-        # print "Official: train error = %s, dev error = %s" % (trainError, devError)
+        # train_correct = evaluate_predictor(train_data, extract_features, weights)
+        # dev_correct = evaluate_predictor(dev_data, extract_features, weights)
+        # print "Official: train = %s, dev = %s" % (train_correct, dev_correct)
 
-
+    # correct = 0
     # results_file = open('dev_results.txt', 'w')
     # for person_id, attrs in dev_data.items():
-    #     feature_vector = extract_features(person_id, attrs)
+    #     feature_vector = extract_features(attrs['attributes'])
     #     rating = float(attrs['rating'])
     #     score = dot_product(weights, feature_vector)
-    #     results_file.write(person_id + ' ' + str(score))
+    #     if abs(rating - score) <= 0.5: correct += 1
+    #     results_file.write(person_id + ' ' + str(score) + '\n')
     # results_file.close()
-
-    print weights
+    # print 'correct: ' + str(correct)
+    # print weights
     return weights
 
 
@@ -178,9 +169,4 @@ def main(argv):
 
 if __name__ == "__main__":
     main(sys.argv[1:])
-
-
-
-
-
 
