@@ -3,74 +3,17 @@
 # Extracts features for each face from the face_dict.txt file, then
 # runs stochastic gradient descent to train the predictor.
 
-import pickle
 import copy
 import random
 import collections
 import math
 import sys
 import ast
+from util import *
 from collections import Counter
 
 
-def evaluatePredictor(examples, predictor):
-    '''
-    predictor: a function that takes an x and returns a predicted y.
-    Given a list of examples (x, y), makes predictions based on |predict| and returns the fraction
-    of misclassiied examples.
-    '''
-    error = 0
-    for x, y in examples:
-        if predictor(x) != y:
-            error += 1
-    return 1.0 * error / len(examples)
-
-def dot_product(d1, d2):
-    """
-    @param dict d1: a feature vector represented by a mapping from a feature (string) to a weight (float).
-    @param dict d2: same as d1
-    @return float: the dot product between d1 and d2
-    """
-    if len(d1) < len(d2):
-        return dot_product(d2, d1)
-    else:
-        return sum(d1.get(f, 0) * v for f, v in d2.items())
-
-
-def increment(d1, scale, d2):
-    """
-    Implements d1 += scale * d2 for sparse vectors.
-    @param dict d1: the feature vector which is mutated.
-    @param float scale
-    @param dict d2: a feature vector.
-    """
-    for f, v in d2.items():
-        d1[f] = d1.get(f, 0) + v * scale
-
-
-def norm(x1, x2, y1, y2):
-    return math.sqrt((abs(x2 - x1))**2 + (abs(y2 - y1))**2)
-
-
-def slope(x1, x2, y1, y2):
-    return (y2 - y1) / (x2 - x1)
-
-
-def tan_theta(m1, m2):
-    return (m1 - m2) / (1 + (m1 * m2))
-
-
-def read_file(file_name):
-    data_file = open(file_name, 'rb')
-
-    # dictionary of person_id : {'url', 'rating', 'face_id', 'attributes}
-    data = pickle.load(data_file)
-    data_file.close()
-
-    return data
-
-
-def extract_features(face_id, face_attrs):
+def extract_features(attributes):
     """
     Extract features for a face corresponding to the face_id and with
     attributes in the dict face_attrs.
@@ -78,75 +21,106 @@ def extract_features(face_id, face_attrs):
 
     feature_vector = collections.defaultdict(lambda: 0)
 
-    lengthOfFace = abs(face_attrs['attributes']['left_eyebrow_upper_middle']['y'] - face_attrs['attributes']['contour_chin']['y'])
-    feature_vector['lenFace'] = lengthOfFace
-    widthOfFaceCheekbones = abs(face_attrs['attributes']['contour_right2']['x'] - face_attrs['attributes']['contour_left2']['x'])
-    feature_vector['widthCheekbones'] = widthOfFaceCheekbones
-    widthOfFaceMouth = abs(face_attrs['attributes']['contour_right5']['x'] - face_attrs['attributes']['contour_left5']['x'])
-    feature_vector['widthMouth'] = widthOfFaceMouth
-    cheekToMouthDistance = abs(face_attrs['attributes']['contour_right5']['x'] - face_attrs['attributes']['mouth_upper_lip_bottom']['x'])
-    feature_vector['cheek2Mouth'] = cheekToMouthDistance
-    eyeHeight = abs(face_attrs['attributes']['right_eye_top']['y'] - face_attrs['attributes']['right_eye_bottom']['y']) / lengthOfFace
-    feature_vector['iHeight'] = eyeHeight
-    eyeWidth = (abs(face_attrs['attributes']['right_eye_right_corner']['x'] - face_attrs['attributes']['right_eye_left_corner']['x'])) / widthOfFaceCheekbones
-    feature_vector['iWidth'] = eyeWidth
-    eyeArea = eyeHeight * eyeWidth
-    feature_vector['iArea'] = eyeArea
-    widthOfFaceEye = abs(face_attrs['attributes']['contour_right1']['x'] - face_attrs['attributes']['contour_left1']['x'])
-    feature_vector['widthFaceEye'] = widthOfFaceEye
-    outerEyeWidth = abs(face_attrs['attributes']['right_eye_right_corner']['x'] - face_attrs['attributes']['left_eye_left_corner']['x']) / widthOfFaceEye
-    feature_vector['outerIWidth'] = outerEyeWidth
-    innerEyeWidth = abs(face_attrs['attributes']['right_eye_left_corner']['x'] - face_attrs['attributes']['left_eye_right_corner']['x']) / widthOfFaceEye
-    feature_vector['innerIWidth'] = innerEyeWidth
-    noseLength = abs((abs(face_attrs['attributes']['nose_left']['y'] + face_attrs['attributes']['nose_right']['y']) / 2) - face_attrs['attributes']['nose_contour_lower_middle']['y']) / lengthOfFace
-    feature_vector['noseLen'] = noseLength
-    noseTipWidth = abs(face_attrs['attributes']['nose_left']['x'] + face_attrs['attributes']['nose_right']['x']) / widthOfFaceMouth
-    feature_vector['noseTW'] = noseTipWidth
-    noseArea = (noseLength*noseTipWidth) / widthOfFaceMouth
-    feature_vector['noseA'] = noseArea
-    nostrilWidth = abs(face_attrs['attributes']['nose_contour_left3']['x'] - face_attrs['attributes']['nose_contour_right3']['x']) / widthOfFaceMouth
-    feature_vector['nosWid'] = nostrilWidth
-    chinLength = abs(face_attrs['attributes']['mouth_upper_lip_bottom']['y'] - face_attrs['attributes']['contour_chin']['y']) / lengthOfFace
-    feature_vector['chinLen'] = chinLength
-    chinWidth = abs(face_attrs['attributes']['contour_left7']['x'] - face_attrs['attributes']['contour_right7']['x']) / lengthOfFace
-    feature_vector['chinWid'] = chinWidth
-    chinArea = chinLength * chinWidth
-    feature_vector['chinA'] = chinArea
-    horizontalEyeSeparation = abs(face_attrs['attributes']['left_eye_pupil']['x'] - face_attrs['attributes']['right_eye_pupil']['x']) / widthOfFaceCheekbones
-    feature_vector['horizontalISep'] = horizontalEyeSeparation
-    cheekboneProminence = abs(widthOfFaceCheekbones - widthOfFaceMouth) / lengthOfFace
-    feature_vector['cheekProm'] = cheekboneProminence
-    cheekThinness = (abs(face_attrs['attributes']['mouth_right_corner']['x'] - face_attrs['attributes']['contour_right5']['x'])) / lengthOfFace
-    feature_vector['cheekThin'] = cheekThinness
-    facialNarrowness = lengthOfFace / widthOfFaceMouth
-    feature_vector['facialNarrow'] = facialNarrowness
-    eyebrowHeight = abs(face_attrs['attributes']['right_eye_pupil']['y'] - face_attrs['attributes']['right_eyebrow_lower_middle']['y']) / lengthOfFace
-    feature_vector['eyebrowHi'] = eyebrowHeight
-    upperLipThickness = abs(face_attrs['attributes']['mouth_upper_lip_bottom']['y'] - face_attrs['attributes']['mouth_upper_lip_top']['y']) / lengthOfFace
-    feature_vector['upLipThick'] = upperLipThickness
-    lowerLipThickness = abs(face_attrs['attributes']['mouth_upper_lip_bottom']['y'] - face_attrs['attributes']['mouth_lower_lip_bottom']['y']) / lengthOfFace
-    feature_vector['lowLipThick'] = lowerLipThickness
-    lipLength = abs(face_attrs['attributes']['mouth_right_corner']['x'] - face_attrs['attributes']['mouth_left_corner']['x']) / widthOfFaceMouth
-    feature_vector['lipLen'] = lipLength
-    browThickness = abs(face_attrs['attributes']['right_eyebrow_lower_middle']['y'] - face_attrs['attributes']['right_eyebrow_upper_middle']['y']) / lengthOfFace
-    feature_vector['browThick'] = browThickness
-    symmetry1 = abs(face_attrs['attributes']['right_eye_pupil']['x'] - face_attrs['attributes']['contour_right1']['x']) / abs(face_attrs['attributes']['contour_left1']['x'] - face_attrs['attributes']['left_eye_pupil']['x'])
-    feature_vector['symm1'] = symmetry1
-    symmetry2 = abs(face_attrs['attributes']['nose_tip']['x'] - face_attrs['attributes']['contour_right3']['x']) / abs(face_attrs['attributes']['contour_left3']['x'] - face_attrs['attributes']['nose_tip']['x'])
-    feature_vector['symm2'] = symmetry2
-    symmetry3 = abs(face_attrs['attributes']['mouth_upper_lip_bottom']['x'] - face_attrs['attributes']['contour_right5']['x']) / abs(face_attrs['attributes']['contour_left5']['x'] - face_attrs['attributes']['mouth_upper_lip_bottom']['x'])
-    feature_vector['symm3'] = symmetry3
-    pupilWidth = abs(face_attrs['attributes']['left_eye_pupil']['x'] - face_attrs['attributes']['right_eye_pupil']['x'])
-    feature_vector['pupilWid'] = pupilWidth
-    noseVsPupilWidth = abs(face_attrs['attributes']['nose_left']['x'] - face_attrs['attributes']['nose_right']['x']) / pupilWidth
-    feature_vector['nVPW'] = noseVsPupilWidth
+    # 1. length of face
+    len_face = abs(attributes['left_eyebrow_upper_middle']['y'] - attributes['contour_chin']['y'])
+    feature_vector['len_face'] = len_face
+    # 2. width of face at cheekbones
+    width_face_cheekbones = abs(attributes['contour_right2']['x'] - attributes['contour_left2']['x'])
+    feature_vector['width_face_cheekbones'] = width_face_cheekbones
+    # 3. width of face at mouth
+    width_face_mouth = abs(attributes['contour_right5']['x'] - attributes['contour_left5']['x'])
+    feature_vector['width_face_mouth'] = width_face_mouth
+    # 4. distance from cheek to middle of mouth
+    cheek_to_mouth = abs(attributes['contour_right5']['x'] - attributes['mouth_upper_lip_bottom']['x'])
+    feature_vector['cheek_to_mouth'] = cheek_to_mouth
+    # 5. eye height to length of face ratio
+    eye_height = abs(attributes['right_eye_top']['y'] - attributes['right_eye_bottom']['y']) / len_face
+    feature_vector['eye_height'] = eye_height
+    # 6. eye width to width of face at cheekbones ratio
+    eye_width = (abs(attributes['right_eye_right_corner']['x'] - attributes['right_eye_left_corner']['x'])) / width_face_cheekbones
+    feature_vector['eye_width'] = eye_width
+    # 7. eye area
+    eye_area = eye_height * eye_width
+    feature_vector['eye_area'] = eye_area
+    # 8. width of face at eye level
+    width_face_eye = abs(attributes['contour_right1']['x'] - attributes['contour_left1']['x'])
+    feature_vector['width_face_eye'] = width_face_eye
+    # 9. outer eye width to width of face at eye level ratio
+    outer_eye_width = abs(attributes['right_eye_right_corner']['x'] - attributes['left_eye_left_corner']['x']) / width_face_eye
+    feature_vector['outer_eye_width'] = outer_eye_width
+    # 10. inner eye width to width of face at eye level ratio
+    inner_eye_width = abs(attributes['right_eye_left_corner']['x'] - attributes['left_eye_right_corner']['x']) / width_face_eye
+    feature_vector['inner_eye_width'] = inner_eye_width
+    # 11. nose length
+    len_nose = abs((abs(attributes['nose_left']['y'] + attributes['nose_right']['y']) / 2) - attributes['nose_contour_lower_middle']['y']) / len_face
+    feature_vector['len_nose'] = len_nose
+    # 12. nose tip width
+    nose_tip_width = abs(attributes['nose_left']['x'] + attributes['nose_right']['x']) / width_face_mouth
+    feature_vector['nose_tip_width'] = nose_tip_width
+    # 13. nose area
+    nose_area = (len_nose * nose_tip_width) / width_face_mouth
+    feature_vector['nose_area'] = nose_area
+    # 14. nostril width
+    nostril_width = abs(attributes['nose_contour_left3']['x'] - attributes['nose_contour_right3']['x']) / width_face_mouth
+    feature_vector['nostril_width'] = nostril_width
+    # 15. chin length
+    len_chin = abs(attributes['mouth_upper_lip_bottom']['y'] - attributes['contour_chin']['y']) / len_face
+    feature_vector['len_chin'] = len_chin
+    # 16. chin width
+    chin_width = abs(attributes['contour_left7']['x'] - attributes['contour_right7']['x']) / len_face
+    feature_vector['chin_width'] = chin_width
+    # 17. chin area
+    chin_area = len_chin * chin_width
+    feature_vector['chin_area'] = chin_area
+    # 18. eye separation to width of face at cheekbones ratio
+    eye_sep = abs(attributes['left_eye_pupil']['x'] - attributes['right_eye_pupil']['x']) / width_face_cheekbones
+    feature_vector['eye_sep'] = eye_sep
+    # 19. cheekbone prominence
+    cheek_prom = abs(width_face_cheekbones - width_face_mouth) / len_face
+    feature_vector['cheek_prom'] = cheek_prom
+    # 20. cheek thinness (width of cheek to length of face ratio)
+    cheek_thin = (abs(attributes['mouth_right_corner']['x'] - attributes['contour_right5']['x'])) / len_face
+    feature_vector['cheek_thin'] = cheek_thin
+    # 21. facial narrowness (length of face to width of face at mouth ratio)
+    facial_narrow = len_face / width_face_mouth
+    feature_vector['facial_narrow'] = facial_narrow
+    # 22. eyebrow height
+    eyebrow_height = abs(attributes['right_eye_pupil']['y'] - attributes['right_eyebrow_lower_middle']['y']) / len_face
+    feature_vector['eyebrow_height'] = eyebrow_height
+    # 23. upper lip thickness (height of upper lip to length of face ratio)
+    up_lip_thick = abs(attributes['mouth_upper_lip_bottom']['y'] - attributes['mouth_upper_lip_top']['y']) / len_face
+    feature_vector['up_lip_thick'] = up_lip_thick
+    # 24. lower lip thickness (height of lower lip to length of face ratio)
+    low_lip_thick = abs(attributes['mouth_upper_lip_bottom']['y'] - attributes['mouth_lower_lip_bottom']['y']) / len_face
+    feature_vector['low_lip_thick'] = low_lip_thick
+    # 25. length of lip to width of face at mouth ratio
+    len_lip = abs(attributes['mouth_right_corner']['x'] - attributes['mouth_left_corner']['x']) / width_face_mouth
+    feature_vector['len_lip'] = len_lip
+    # 26. brow_thick (height of brow to length of face ratio)
+    brow_thick = abs(attributes['right_eyebrow_lower_middle']['y'] - attributes['right_eyebrow_upper_middle']['y']) / len_face
+    feature_vector['brow_thick'] = brow_thick
+    # 27a. symmetry of middle of pupil to side of face
+    sym1 = abs(attributes['right_eye_pupil']['x'] - attributes['contour_right1']['x']) / abs(attributes['contour_left1']['x'] - attributes['left_eye_pupil']['x'])
+    feature_vector['sym1'] = sym1
+    # 27b. symmetry of middle of nose to side of face
+    sym2 = abs(attributes['nose_tip']['x'] - attributes['contour_right3']['x']) / abs(attributes['contour_left3']['x'] - attributes['nose_tip']['x'])
+    feature_vector['sym2'] = sym2
+    # 27c. symmetry of center of mouth to side of face
+    sym3 = abs(attributes['mouth_upper_lip_bottom']['x'] - attributes['contour_right5']['x']) / abs(attributes['contour_left5']['x'] - attributes['mouth_upper_lip_bottom']['x'])
+    feature_vector['sym3'] = sym3
+    # 28. distance between centers of pupils
+    pupil_width = abs(attributes['left_eye_pupil']['x'] - attributes['right_eye_pupil']['x'])
+    feature_vector['pupil_width'] = pupil_width
+    # 29. nose width to pupil width ratio
+    nose_pupil_width = abs(attributes['nose_left']['x'] - attributes['nose_right']['x']) / pupil_width
+    feature_vector['nose_pupil_width'] = nose_pupil_width
 
     # lipVsPupil = lipLength/pupilWidth
     # noseVsLip = noseTipWidth/lipLength
     # angleCheekboneLowerJaw = 
     # anglePupilLowerJaw1 = 
     # anglePupilLowerJaw2 = 
-    # pupilVsNoseWidth = abs(face_attrs['attributes']['nose_left']['x'] - face_attrs['attributes']['nose_right']['x'])/ ######
+    # pupilVsNoseWidth = abs(attributes['nose_left']['x'] - attributes['nose_right']['x'])/ ######
     # pupilVsLowerJaw = 
     # pupilVsWidthOfFace = 
     # pupilVsPupil = 
@@ -164,13 +138,10 @@ def learn_predictor(train, dev, feature_extractor):
     num_iters = 20
 
     for t in range(num_iters):
-        # print t
         eta = 1 / math.sqrt(t + 1)   
 
         for person_id, attrs in train_data.items():
-
-            feature_vector = extract_features(person_id, attrs)
-            # print feature_vector
+            feature_vector = extract_features(attrs['attributes'])
             rating = float(attrs['rating'])
             margin = dot_product(weights, feature_vector) - rating
             # print dot_product(weights, feature_vector)
