@@ -1,3 +1,9 @@
+# File: kmeans.py
+# --------------------
+# Runs k-mean clustering on the feature vectors of all the
+# faces in the database, then finds the average rating of each
+# cluster and other metrics.
+
 import math
 from algorithm import *
 from util import *

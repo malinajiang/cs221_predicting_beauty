@@ -42,7 +42,7 @@ def create_faces():
 	print 'finished!'
 
 def main(argv):
-	create_faces(argv[0], argv[1])
+	create_faces()
 
 if __name__ == '__main__':
 	main(sys.argv[1:])

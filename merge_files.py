@@ -1,3 +1,8 @@
+# File: merge_files.py
+# --------------------
+# Combines all the face data from the train, dev, and test files
+# into one dictionary of faces and saves it to all_data.txt.
+
 from util import *
 
 data_file = open('all_data.txt', 'wb')

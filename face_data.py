@@ -1,4 +1,4 @@
-# File: get_face_data.py 
+# File: face_data.py 
 # --------------------
 # Gets attributes data for each face in the training set and pickles into
 # dict of image_id to data.
