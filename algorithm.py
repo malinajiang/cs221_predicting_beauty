@@ -24,12 +24,15 @@ def extract_features(attributes):
     # 1. length of face
     len_face = abs(attributes['left_eyebrow_upper_middle']['y'] - attributes['contour_chin']['y'])
     feature_vector['len_face'] = len_face
+
     # 2. width of face at cheekbones
     width_face_cheekbones = abs(attributes['contour_right2']['x'] - attributes['contour_left2']['x'])
     feature_vector['width_face_cheekbones'] = width_face_cheekbones
+
     # # 3. width of face at mouth
     # width_face_mouth = abs(attributes['contour_right5']['x'] - attributes['contour_left5']['x'])
     # feature_vector['width_face_mouth'] = width_face_mouth
+
     # 4. distance from cheek to middle of mouth
     cheek_to_mouth = abs(attributes['contour_right5']['x'] - attributes['mouth_upper_lip_bottom']['x'])
     feature_vector['cheek_to_mouth'] = cheek_to_mouth
@@ -47,9 +50,11 @@ def extract_features(attributes):
     # # 6. eye width to width of face at cheekbones ratio
     # eye_width = (abs(attributes['right_eye_right_corner']['x'] - attributes['right_eye_left_corner']['x'])) / width_face_cheekbones
     # feature_vector['eye_width'] = eye_width
+
     # # 7. eye area
     # eye_area = eye_height * eye_width
     # feature_vector['eye_area'] = eye_area
+
     # 8. width of face at eye level
     width_face_eye = abs(attributes['contour_right1']['x'] - attributes['contour_left1']['x'])
     feature_vector['width_face_eye'] = width_face_eye
@@ -81,6 +86,7 @@ def extract_features(attributes):
     # # 12. nose tip width
     # nose_tip_width = abs(attributes['nose_left']['x'] + attributes['nose_right']['x']) / width_face_mouth
     # feature_vector['nose_tip_width'] = nose_tip_width
+
     # # 13. nose area
     # nose_area = (len_nose * nose_tip_width) / width_face_mouth
     # feature_vector['nose_area'] = nose_area
@@ -105,6 +111,7 @@ def extract_features(attributes):
     # # 16. chin width
     # chin_width = abs(attributes['contour_left7']['x'] - attributes['contour_right7']['x']) / len_face
     # feature_vector['chin_width'] = chin_width    
+
     # # 17. chin area
     # chin_area = len_chin * chin_width
     # feature_vector['chin_area'] = chin_area
@@ -129,6 +136,7 @@ def extract_features(attributes):
     # # 20. cheek thinness (width of cheek to length of face ratio)
     # cheek_thin = (abs(attributes['mouth_right_corner']['x'] - attributes['contour_right5']['x'])) / len_face
     # feature_vector['cheek_thin'] = cheek_thin
+
     # 21. facial narrowness (length of face to width of face at mouth ratio)
     # facial_narrow = len_face / width_face_mouth
     # feature_vector['facial_narrow'] = facial_narrow
@@ -164,7 +172,6 @@ def extract_features(attributes):
     brow_t = abs(attributes['right_eyebrow_lower_middle']['y'] - attributes['right_eyebrow_upper_middle']['y'])
     feature_vector['brow_t'] = brow_t
 
-
     # # 27a. symmetry of middle of pupil to side of face
 
     # s1a = abs(attributes['right_eye_pupil']['x'] - attributes['contour_right1']['x'])
@@ -195,6 +202,7 @@ def extract_features(attributes):
     # # 27c. symmetry of center of mouth to side of face
     # sym3 = abs(attributes['mouth_upper_lip_bottom']['x'] - attributes['contour_right5']['x']) / abs(attributes['contour_left5']['x'] - attributes['mouth_upper_lip_bottom']['x'])
     # feature_vector['sym3'] = sym3
+
     # 28. distance between centers of pupils
     # pupil_width = abs(attributes['left_eye_pupil']['x'] - attributes['right_eye_pupil']['x'])
     # feature_vector['pupil_width'] = pupil_width
@@ -242,8 +250,8 @@ def extract_features(attributes):
     # # 41. eye height/eye area
     # feature_vector['eye_height/eye_area'] = eye_height*eye_area
 
-    #pupil_width, len_face, len_lip, eye_sep, width_face_eye, eyebrow_height, width_face_mouth, facial_narrow
-    #width_face_eye->len_lip, eye_sep, width_face_mouth, facial_narrow
+    # pupil_width, len_face, len_lip, eye_sep, width_face_eye, eyebrow_height, width_face_mouth, facial_narrow
+    # width_face_eye->len_lip, eye_sep, width_face_mouth, facial_narrow
 
     # # 42. width_face_eye squared
     # feature_vector['width_face_eyesquared'] = width_face_eye**2
@@ -281,7 +289,7 @@ def learn_predictor(train, dev, feature_extractor, evaluate):
     num_iters = 500
 
     for t in range(num_iters):
-        eta = .00001 #0.00001 - 0.000001 
+        eta = .00001 # .00001
         for person_id, attrs in train_data.items():
             feature_vector = extract_features(attrs['attributes'])
             rating = float(attrs['rating'])
@@ -294,7 +302,7 @@ def learn_predictor(train, dev, feature_extractor, evaluate):
 
     if evaluate:
         dev_data = read_file(dev)
-        
+
         correct = 0
         results_file = open('dev_results.txt', 'w')
         for person_id, attrs in dev_data.items():

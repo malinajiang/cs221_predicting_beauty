@@ -96,8 +96,8 @@ def main(argv):
         ratings[face_id] = attr['rating']
 
     # arguments: cluster.txt, num_clusters, iterations, feature_extractor
-    mu, assignments, prev_cost = kmeans(feature_extracted_data, 10, 50)
-    average_face(10, mu, assignments, ratings)
+    mu, assignments, prev_cost = kmeans(feature_extracted_data, 8, 50)
+    average_face(8, mu, assignments, ratings)
 
 if __name__ == "__main__":
     main(sys.argv[1:])
