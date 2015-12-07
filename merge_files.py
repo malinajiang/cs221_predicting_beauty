@@ -1,6 +1,6 @@
 from util import *
 
-data_file = open('cluster.txt', 'wb')
+data_file = open('all_data.txt', 'wb')
 d1 = read_file('train_data.txt')
 d2 = read_file('dev_data.txt')
 d3 = read_file('test_data.txt')

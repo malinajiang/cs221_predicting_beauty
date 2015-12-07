@@ -267,16 +267,15 @@ def extract_features(attributes):
     # feature_vector['width_face_eye/eye_sep'] = width_face_eye*eye_sep
 
     # # 49. width_face_eye/width_face_mouth
-    # feature_vector['width_face_eye/width_face_mouth'] = width_face_eye*width_face_mouth
+    # feature_vector['width_face_eye/width_face_mouth'] = width_face_eye * width_face_mouth
 
     # # 50. width_face_eye/facial_narrow
-    # feature_vector['width_face_eye/facial_narrow'] = width_face_eye*facial_narrow
+    # feature_vector['width_face_eye/facial_narrow'] = width_face_eye * facial_narrow
     return feature_vector
 
 
-def learn_predictor(train, dev, feature_extractor):
+def learn_predictor(train, dev, feature_extractor, evaluate):
     train_data = read_file(train)
-    dev_data = read_file(dev)
 
     weights = collections.defaultdict(lambda: 0)  # feature => weight
     num_iters = 500
@@ -293,23 +292,27 @@ def learn_predictor(train, dev, feature_extractor):
         # dev_correct = evaluate_predictor(dev_data, extract_features, weights)
         # print "Official: train = %s, dev = %s" % (train_correct, dev_correct)
 
-    correct = 0
-    results_file = open('dev_results.txt', 'w')
-    for person_id, attrs in dev_data.items():
-        feature_vector = extract_features(attrs['attributes'])
-        rating = float(attrs['rating'])
-        score = dot_product(weights, feature_vector)
-        if abs(rating - score) <= 0.5: correct += 1
-        results_file.write(person_id + ' ' + str(score) + '\n')
-    results_file.close()
-    print 'correct: ' + str(correct)
-    print 'percentage: ' + str(float(correct)/199)
-    print weights
+    if evaluate:
+        dev_data = read_file(dev)
+        
+        correct = 0
+        results_file = open('dev_results.txt', 'w')
+        for person_id, attrs in dev_data.items():
+            feature_vector = extract_features(attrs['attributes'])
+            rating = float(attrs['rating'])
+            score = dot_product(weights, feature_vector)
+            if abs(rating - score) <= 0.5: correct += 1
+            results_file.write(person_id + ' ' + str(score) + '\n')
+        results_file.close()
+        print 'correct: ' + str(correct)
+        print 'percentage: ' + str(float(correct)/199)
+        print weights
+
     return weights
 
 
 def main(argv):
-    learn_predictor(argv[0], argv[1], extract_features)
+    learn_predictor(argv[0], argv[1], extract_features, True)
 
 if __name__ == "__main__":
     main(sys.argv[1:])

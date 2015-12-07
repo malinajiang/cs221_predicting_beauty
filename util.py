@@ -12,11 +12,13 @@ from collections import Counter
 
 def evaluate_predictor(data, feature_extractor, weights):
     correct = 0
+
     for person_id, attrs in data.items():
         feature_vector = feature_extractor(attrs['attributes'])
         rating = float(attrs['rating'])
         prediction = dot_product(weights, feature_vector)
         if abs(rating - prediction) <= 0.5: correct += 1
+        
     return correct
 
 def dot_product(d1, d2):
