@@ -68,6 +68,8 @@ def kmeans(examples, K, max_iters):
 
 def average_face(K, mu, assignments, ratings):
     averages_file = open('averages.txt', 'wb')
+    cluster_files = []
+    for i in range(K): cluster_files.append(open('cluster' + str(i) + '.txt', 'wb'))
     average_ratings = [0 for k in range(K)]
     counts = [0 for k in range(K)]
     variance = [0 for k in range(K)]
@@ -82,13 +84,17 @@ def average_face(K, mu, assignments, ratings):
         print average_ratings[k]
         averages_file.write('cluster: %s, %s \n' % (k, mu[k]))
         averages_file.write('average rating: %s \n' % average_ratings[k])
+        cluster_files[k].write('cluster: %s, %s \n' % (k, mu[k]))
+        cluster_files[k].write('average rating: %s \n \n' % average_ratings[k])
 
         for face_id in assignments:
             if assignments[face_id] == k:
+                cluster_files[k].write('%s \n' % (face_id))
                 variance[k] += (average_ratings[k] - float(ratings[face_id]))**2
 
         averages_file.write('variance: %s \n\n' % variance[k])
 
+    for i in range(K): cluster_files[i].close()
     averages_file.close()
 
     print 'total variance: %s' % sum(variance)
@@ -102,8 +108,8 @@ def main(argv):
         ratings[face_id] = attr['rating']
 
     # arguments: cluster.txt, num_clusters, iterations, feature_extractor
-    mu, assignments, prev_cost = kmeans(feature_extracted_data, 8, 50)
-    average_face(8, mu, assignments, ratings)
+    mu, assignments, prev_cost = kmeans(feature_extracted_data, 10, 100)
+    average_face(10, mu, assignments, ratings)
 
 if __name__ == "__main__":
     main(sys.argv[1:])
