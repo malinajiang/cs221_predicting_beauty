@@ -1,7 +1,15 @@
 File: README.md
 --------------------
-Details the python commands, code files, and data files of the 
-project.
+"Predicting Beauty" was divided into two phases: linear regression and k-means 
+clustering.  The former created a predictor for facial attractiveness by training
+a weight vector with 24 features on the train_data.txt, testing and optimizing on
+the dev_data.txt, and getting a final accuracy percentage on test_data.txt.  The latter created 10 clusters on all 597 faces of the Chicago Faces Database, and 
+the clusters were used to determine 10 categories of faces that people generally fall into.  These clusters also served as inspiration for some of the features in the linear predictor.  
+
+If you are interested in seeing the predictor rate a face, you may run rate_me.py with an argument to an image link!  
+
+The descriptions below detail the python commands, code files, and data files of the project.  To run any commands, unzip the code.zip file, cd into the directory,
+and run any commands listed below in the directory.  
 
 
 File: algorithm.py
