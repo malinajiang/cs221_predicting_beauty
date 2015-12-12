@@ -10,7 +10,6 @@ from util import *
 import random
 
 def calculate_cost(point, k):
-    
     cost = sum((x - k[i])**2 if i in k else x**2 for i,x in point.items())  
     cost += sum(k[i]**2 if i not in point else 0 for i,x in k.items())
     return cost

@@ -1,6 +1,6 @@
 # File: face_data.py 
 # --------------------
-# Gets attributes data for each face in the training set and pickles into
+# Gets attributes data for each face in the data sets and pickles into
 # dict of image_id to data.
 
 import pickle

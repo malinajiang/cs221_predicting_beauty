@@ -1,5 +1,6 @@
-# File: algorithm.py
+# File: algorithm_copy.py
 # --------------------
+# ** alternate **
 # Extracts features for each face from the face_dict.txt file, then
 # runs stochastic gradient descent to train the predictor.
 
